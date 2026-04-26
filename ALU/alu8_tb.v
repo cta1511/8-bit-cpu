@@ -4,14 +4,15 @@ module alu8_tb;
 
 reg[7:0] a,b;
 reg[3:0] opc;
+reg[1:0] op;
 wire carry;
 wire[7:0] out,out2;
 
-alu8 alu(a,b,opc,out,out2,carry);
+alu8 alu(a,b,opc,op,out,out2,carry);
 
 initial begin
 
-opc=4'd0;a=8'd220;b=8'd113;  //40,0
+op=2'b01; opc=4'd0; a=8'd220; b=8'd113;  //40,0
 #2 opc=4'd1;  //0
 #2 opc=4'd2;  //400
 #2 opc=4'd3;  //1

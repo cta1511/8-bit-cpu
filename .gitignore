@@ -2,8 +2,10 @@
 .DS_Store
 
 # Icarus Verilog / simulation outputs
+build/
 *.vcd
 *.o
+*_sim
 
 main8
 control
