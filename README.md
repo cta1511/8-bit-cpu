@@ -11,7 +11,7 @@ Verilog project for an 8-bit processor design.
 - `GPIOs/`: output register module.
 - `control.v`, `datapath.v`, `main8.v`: top-level control, datapath, and main design files.
 - `*_tb.v`: testbenches for simulation.
-- `BaoCaoQuaTrinh.pptx`: project report.
+- `Report.pptx`: project report.
 
 ## Simulation
 
