@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+
+# Icarus Verilog / simulation outputs
+*.vcd
+*.o
+
+main8
+control
+ALU/alu8
+ALU/8 bit barrel shifter/bs8
+InstructionRegister/ir8
+InstructionRegister/ir8_sim
+DataMemory/mem8
+DataMemory/mem8_sim
+GPIOs/reg8
+GPIOs/reg8_sim
+ProgramCounter/pc6
+ProgramCounter/pc6_sim

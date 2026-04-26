@@ -1,0 +1,98 @@
+32-bit Instructions.
+Instruction memory with 64 numbers of 32-bit instructions.
+
+It reads the 32 bit instructions stored in test.prog one by one with help of progam counter and are executed accordingly
+
+
+
+⸻
+
+✅ Tóm tắt chức năng module ir8
+
+Module này là một Instruction Memory với:
+	•	64 ô nhớ, mỗi ô 32-bit
+	•	Cho phép đọc ra một lệnh (instruction) dựa trên địa chỉ
+	•	Khởi tạo nội dung từ file "test.prog"
+
+⸻
+
+✅ Giải thích chi tiết theo từng phần
+
+🔷 1. Khai báo module và cổng
+
+module ir8(out_address, out_data);
+
+Tên module là ir8, gồm:
+
+input [5:0] out_address;
+output [31:0] out_data;
+
+	•	out_address: đầu vào 6-bit → truy xuất 64 ô (2^6 = 64)
+	•	out_data: dữ liệu đầu ra 32-bit – chính là lệnh (instruction) tại địa chỉ đó
+
+⸻
+
+🔷 2. Bộ nhớ instruction
+
+reg [31:0] ir_mem [0:63];
+
+	•	Mảng ir_mem gồm 64 phần tử, mỗi phần tử 32-bit
+	•	Đây là nơi lưu trữ các instruction (giống ROM)
+
+⸻
+
+🔷 3. Khởi tạo giá trị bộ nhớ
+
+integer i, f;
+initial begin
+    for (i = 0; i < 32; i = i + 1)
+        ir_mem[i] <= 32'd0;
+end
+
+	•	Gán 32 ô đầu tiên giá trị 0
+	•	Lưu ý: for (i = 0; i < 32) → không khởi tạo toàn bộ 64 ô
+
+⸻
+
+🔷 4. Load dữ liệu từ file
+
+always @(*) begin
+    $readmemb("test.prog", ir_mem, 0, 63);
+end
+
+	•	Mỗi khi có thay đổi (do @(*)), module nạp lại dữ liệu từ file test.prog
+	•	File này chứa các instruction nhị phân dạng 32-bit, ví dụ:
+
+10001000001000000000000000111101
+10001000010000000000000000111110
+...
+
+
+
+⚠️ Dùng always @(*) để gọi $readmemb là không tối ưu. → nên đưa vào initial block thôi.
+
+⸻
+
+🔷 5. Xuất dữ liệu instruction
+
+assign out_data = ir_mem[out_address];
+
+	•	Khi out_address thay đổi → out_data trả về giá trị tương ứng trong ir_mem
+	•	Đây là bộ nhớ chỉ đọc (ROM) trong mô phỏng
+
+⸻
+
+✅ Tóm tắt hoạt động
+
+Giai đoạn	Diễn giải
+Mô phỏng bắt đầu	Các ô đầu tiên được gán 0
+Sau đó	Dữ liệu được load từ "test.prog" vào ir_mem
+Trong mô phỏng	Khi out_address thay đổi → lấy ra instruction 32-bit từ ir_mem tại địa chỉ đó
+
+
+⸻
+
+✅ Ứng dụng
+	•	Mô phỏng Instruction Memory cho bộ xử lý 8-bit hoặc Harvard architecture
+	•	Cung cấp lệnh để feed vào Control Unit hoặc Datapath
+	•	Dùng trong các dự án CPU tự thiết kế, pipeline simulation, hoặc Verilog training

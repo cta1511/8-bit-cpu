@@ -1,0 +1,134 @@
+8 bit data memory of the processor
+
+Data memory with 256 numbers of 8-bit locations.
+
+It reads the memory data from the test.data at the start and print the updated memory data in data_out.o at end
+
+
+
+✅ 1. Tóm tắt chức năng tổng quát
+
+mem8 là gì?
+	•	Một bộ nhớ 8-bit x 256 ô (256 dòng, mỗi dòng 1 byte)
+	•	Hỗ trợ:
+	•	Ghi dữ liệu đồng bộ với clock khi w_en = 1
+	•	Đọc dữ liệu bất đồng bộ khi en = 1
+	•	In toàn bộ nội dung RAM ra file data_out.o khi p_en = 1
+	•	Khởi tạo từ file test.data với $readmemb
+
+⸻
+
+✅ 2. Giải thích từng thành phần
+
+🔷 Khai báo module và cổng:
+
+module mem8(clk, address, in_data, out_data, w_en, en, p_en);
+
+	•	Tên module: mem8
+	•	7 cổng: 1 clock, 1 địa chỉ, 1 dữ liệu vào, 1 dữ liệu ra, 3 cờ điều khiển
+
+⸻
+
+🔷 Tín hiệu vào/ra:
+
+input clk;
+input [7:0] address;
+input [7:0] in_data;
+input en, w_en, p_en;
+output [7:0] out_data;
+
+Tên tín hiệu	Chức năng
+clk	Clock đồng bộ cho ghi
+address	Địa chỉ truy cập RAM (0–255)
+in_data	Dữ liệu ghi
+w_en	Cho phép ghi
+en	Cho phép đọc
+p_en	Cho phép ghi toàn bộ RAM ra file
+out_data	Dữ liệu đọc ra từ RAM
+
+
+⸻
+
+🔷 Khai báo RAM:
+
+reg [7:0] data_mem [0:255];
+
+	•	Đây là mảng RAM có 256 ô nhớ, mỗi ô 8 bit
+
+⸻
+
+🔷 Khởi tạo nội dung RAM từ file:
+
+initial begin
+    $readmemb("test.data", data_mem, 0, 255);
+end
+
+	•	RAM được load từ file test.data lúc mô phỏng bắt đầu
+	•	File test.data nên chứa các dòng nhị phân 8-bit, ví dụ:
+
+00001111
+11110000
+...
+
+
+
+⸻
+
+🔷 Ghi RAM khi w_en == 1
+
+always @(posedge clk)
+begin
+    if (w_en == 1'b1)
+        data_mem[address] = in_data;
+end
+
+	•	Ghi dữ liệu in_data vào data_mem[address] tại cạnh lên của clk, nếu w_en = 1
+	•	Đây là kiểu ghi đồng bộ, giống như trong phần cứng thực tế
+
+⸻
+
+🔷 Đọc RAM (combinational)
+
+assign out_data = (en == 1'b1) ? data_mem[address] : 0;
+
+	•	Khi en = 1, trả về data_mem[address]
+	•	Khi en = 0, trả về 0
+	•	Đây là kiểu đọc bất đồng bộ
+
+⸻
+
+🔷 In toàn bộ RAM ra file data_out.o khi p_en == 1
+
+always @(*) begin
+    if (p_en == 1'b1) begin
+        f = $fopen("data_out.o");
+        $fwrite(f, ... toàn bộ 256 dòng ...);
+        #130;
+        $fclose(f);
+    end
+end
+
+	•	Khi p_en = 1, tạo file data_out.o
+	•	Ghi toàn bộ nội dung data_mem[0] → data_mem[255] ra file
+	•	Sử dụng $fwrite để ghi nhị phân
+	•	Delay #130 giúp giữ file mở một thời gian trước khi đóng
+
+⸻
+
+✅ 3. Chức năng tương ứng
+
+Cờ điều khiển	Tác dụng
+w_en = 1	Ghi dữ liệu vào RAM tại địa chỉ chỉ định
+en = 1	Cho phép đọc ra dữ liệu từ RAM
+p_en = 1	Xuất toàn bộ bộ nhớ ra file data_out.o để debug
+
+
+⸻
+
+✅ 4. Ứng dụng thực tế
+	•	Mô phỏng RAM hoặc Data Memory trong CPU Harvard
+	•	Có thể dùng làm khối nhớ trong pipeline
+	•	Xuất file data_out.o để so sánh kết quả với mô hình chuẩn (golden model)
+
+
+

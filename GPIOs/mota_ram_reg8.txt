@@ -1,0 +1,117 @@
+verilog code for general purpose registers
+
+32-numbers of 8-bit registers.
+
+It also prints the updated register data in reg_out.o at end
+
+Đây là một phiên bản mở rộng và nâng cấp hơn của module reg8, có thêm các tính năng:
+
+⸻
+
+✅ Tóm tắt chức năng chính của reg8 phiên bản này
+
+🧠 Mục đích:
+
+Đây là General-Purpose Register File gồm:
+	•	32 thanh ghi, mỗi thanh ghi 8-bit
+	•	Hỗ trợ:
+	•	Đọc 2 cổng: out_data1, out_data2 từ địa chỉ address1, address2
+	•	Ghi 2 cổng: vào rwdt1, rwdt2 nếu w_en == 1
+	•	In ra toàn bộ thanh ghi vào file nếu p_en == 1
+
+⸻
+
+✅ Giải thích chi tiết từng phần code
+
+1. Cổng vào/ra
+
+input clk;
+input [4:0] address1, address2, rwdt1, rwdt2;
+input [7:0] in_data1, in_data2;
+input w_en, p_en;
+output [7:0] out_data1, out_data2;
+
+	•	clk: xung clock dùng cho các hoạt động đồng bộ
+	•	rwdt1, rwdt2: địa chỉ ghi
+	•	address1, address2: địa chỉ đọc
+	•	in_data1, in_data2: dữ liệu ghi
+	•	out_data1, out_data2: dữ liệu đọc
+	•	w_en: bật ghi
+	•	p_en: bật in ra file
+
+⸻
+
+2. Khởi tạo bộ nhớ
+
+reg [7:0] reg_mem[0:31];
+integer i, f;
+
+initial begin
+	for(i=0; i<32; i=i+1)
+		reg_mem[i] <= 8'd0;
+end
+
+	•	Khởi tạo toàn bộ 32 thanh ghi về 0 ban đầu
+	•	reg_mem là mảng 32 phần tử, mỗi phần tử 8-bit
+
+⸻
+
+3. Khối điều khiển ghi và xuất file (luôn chạy khi có xung clock)
+
+always @(posedge clk)
+begin
+    if (w_en == 1'b1) begin
+        reg_mem[rwdt1] = in_data1;
+        reg_mem[rwdt2] = in_data2;
+    end
+
+	•	Ghi in_data1 vào rwdt1, in_data2 vào rwdt2 khi w_en bật
+	•	Diễn ra tại cạnh lên của clk
+
+⸻
+
+4. Xuất toàn bộ thanh ghi ra file khi p_en == 1
+
+    if (p_en == 1'b1) begin
+        f = $fopen("reg_out.o");
+        $fwrite(f, "time =%d\n", $time, ... );
+        #130;
+        $fclose(f);
+    end
+
+	•	Mở file reg_out.o để ghi
+	•	Ghi từng thanh ghi từ reg_mem[0] đến reg_mem[31]
+	•	#130 delay mô phỏng để cho phép quan sát
+	•	Đóng file lại bằng $fclose(f)
+
+📌 Ứng dụng: debug thanh ghi vào thời điểm cụ thể.
+
+⸻
+
+5. Đọc ra 2 cổng song song (liên tục)
+
+assign out_data1 = reg_mem[address1];
+assign out_data2 = reg_mem[address2];
+
+	•	Đọc thanh ghi không cần clk
+	•	Luôn trả về giá trị hiện tại của thanh ghi tại address1, address2
+
+⸻
+
+📌 So sánh với phiên bản trước
+
+Phiên bản cũ	Phiên bản này
+Ghi ngay khi w_en (combinational)	Ghi tại posedge clk (synchronous) ✅
+Không có tính năng debug	Có in toàn bộ thanh ghi ra file với p_en ✅
+Gọn hơn	Chi tiết hơn, phù hợp mô phỏng CPU
+
+
+⸻
+
+✅ Kết luận
+
+Module này mô phỏng một phần của Register File trong bộ xử lý:
+	•	Cho phép 2 ghi + 2 đọc song song
+	•	Ghi đồng bộ theo clock
+	•	Hỗ trợ in trạng thái thanh ghi (rất hữu ích để debug pipeline CPU hoặc FSM)
+
